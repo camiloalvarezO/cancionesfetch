@@ -1,40 +1,56 @@
 import * as UI from './interfaz.js';
 
-class API {
-    constructor(artista,cancion){
-        this.artista = artista,
+class API{
+    constructor(nombre,cancion){
+        this.nombre = nombre,
         this.cancion = cancion
-        
     }
+
     consultarAPI(){
-        const url = `https://api.lyrics.ovh/v1/${this.artista}/${this.cancion}`;
-
+       const url = `https://api.lyrics.ovh/v1/${this.nombre}/${this.cancion}`;
+        UI.mostrarSpinner();
+        UI.limpiarHTML();
         fetch(url)
-        .then(resultado => resultado.json())
-        .then(respuesta => {
-            if(respuesta.lyrics){
-                
-                const {lyrics} = respuesta;
-                UI.divResultado.textContent = lyrics;
-                UI.headingResultado.textContent = `letra de la cancion ${this.cancion} del artista ${this.artista}`
-            } else{
-                UI.resultado.textContent = 'No se encontró la canción'
-                UI.resultado.classList.add('error');
-                setTimeout(() => {
-                    UI.resultado.textContent = ''
-                UI.resultado.classList.remove('error');
-                }, 3000);
+            .then(respuesta => respuesta.json())
+            .then(resultado => {
+                if(resultado.error){
+                    
+                        UI.divMensajes.textContent = 'No se encontraron letras para la canción especificada.';
+                        UI.divMensajes.classList.add('error');
+                     
+                        UI.divMensajes.textContent = `${resultado.error}`;
+                        UI.divMensajes.classList.add('error');
 
+                
+                    setTimeout(() => {
+                        UI.divMensajes.textContent = '';
+                        UI.divMensajes.classList.remove('error')
+                    }, 3000);
+                    return;
+                }
+                console.log(resultado);
+                const {lyrics} = resultado;
+                UI.headingResultado.textContent= `artista: ${this.nombre} - ${this.cancion}`;
+                UI.divResultado.textContent = `${lyrics}`;
             }
-        })
-    }
-    limpiarHTML(){
-        while(UI.divResultado.firstChild){
-            UI.divResultado.remove(UI.divResultado.firstChild)
-        }
+                
+            )
+            .catch((error) => {
+                if (error.error && error.error === 'No lyrics found') {
+                    UI.divMensajes.textContent = 'No se encontraron letras para la canción especificada.';
+                    UI.divMensajes.classList.add('error');
+                } else {
+                    UI.divMensajes.textContent = `${error}`;
+                    UI.divMensajes.classList.add('error');
+                }
+            
+                setTimeout(() => {
+                    UI.divMensajes.textContent = '';
+                    UI.divMensajes.classList.remove('error')
+                }, 3000);
+            })
     }
 }
 
 
-
-export default API;
+export default API
